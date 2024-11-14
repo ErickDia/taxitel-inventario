@@ -3,6 +3,8 @@ import LayoutDash from "./LayoutDash"
 
 
 function Home() {
+
+  
   return (
     <LayoutDash>
       <h1>Mi Página de Dashboard</h1>

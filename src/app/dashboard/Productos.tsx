@@ -60,7 +60,7 @@ const products: Product[] = [
     prod_name: "casquete",
     prod_foto: "casquete.jpg",
     prod_stock: 5,
-    cate_id: 1,
+    cate_id: 2,
     cate_nombre: "Accesorios para Vehiculo"
   },
   {
@@ -68,7 +68,7 @@ const products: Product[] = [
     prod_name: "Camisa verde clasica",
     prod_foto: "Camisa.jpg",
     prod_stock: 10,
-    cate_id: 2,
+    cate_id: 1,
     cate_nombre: "Ropa",
     subProducts: [
       {
@@ -119,6 +119,9 @@ export const Productos = () => {
 
   // modal config
 
+  const [titleModalProduct, setTitleModalProduct] = useState({label: "Crear Producto", id: 1})
+
+  const [containSubprods, setContainSubprods] = useState(false)
   const [inputProd_id, setInputProd_id] = useState(0)
   const [inputProd_name, setInputProd_name] = useState("")
   const [inputProd_stock, setInputProd_stock] = useState("")
@@ -139,11 +142,19 @@ export const Productos = () => {
 
       <Dialog>
         <DialogTrigger asChild>
-          <Button variant="outline"  className='my-4' ref={buttonNuevoProducto}><Plus />Nuevo Producto</Button>
+          <Button variant="outline"  className='my-4 hidden' ref={buttonNuevoProducto}><Plus />Nuevo producto</Button>
         </DialogTrigger>
+        <Button variant="outline"  className='my-4'  onClick={() => {
+                        setTitleModalProduct({label: "Crear producto", id: 1})
+                        setInputProd_id(0)
+                        setCate_id(0)
+                        setInputProd_name("")
+                        setInputProd_stock("")
+                        buttonNuevoProducto.current?.click()
+                      }}><Plus />Nuevo producto</Button>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Crear producto</DialogTitle>
+            <DialogTitle>{titleModalProduct.label}</DialogTitle>
             <DialogDescription>
               Make changes to your profile here. Click save when you're done.
             </DialogDescription>
@@ -155,13 +166,13 @@ export const Productos = () => {
               </Label>
               <Input id="prod_name" value={inputProd_name} onChange={(e) => setInputProd_name(e.target.value)} className="col-span-3" />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
+            <div className={"grid grid-cols-4 items-center gap-4" + (titleModalProduct.id == 2 && containSubprods ? " hidden" : "")}>
               <Label htmlFor="prod_stock" className="text-right">
                 Stock
               </Label>
               <Input id="prod_stock" value={inputProd_stock} onChange={(e) => setInputProd_stock(e.target.value)} className="col-span-3" type='number' />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
+            <div className={"grid grid-cols-4 items-center gap-4" + (titleModalProduct.id != 3 ? "" : " hidden")}>
               <Label htmlFor="cate_id" className="text-right">
                 Categoria
               </Label>
@@ -246,7 +257,16 @@ export const Productos = () => {
                   <TableCell>{product.prod_stock}</TableCell>
                   <TableCell>{product.cate_nombre}</TableCell>
                   <TableCell>
-                    <Button size="icon" variant="ghost" onClick={() => buttonNuevoProducto.current?.click()}>
+                    <Button size="icon" variant="ghost" onClick={() => {
+                        setTitleModalProduct({label: "Editar producto",id: 2})
+                        setInputProd_id(product.prod_id)
+                        setCate_id(product.cate_id)
+                        setInputProd_name(product.prod_name)
+                        setInputProd_stock(`${product.prod_stock}`)
+
+                        product.subProducts ? setContainSubprods(true): setContainSubprods(false)
+                        buttonNuevoProducto.current?.click()
+                      }}>
                       {/* <AlignJustify /> */}
                       <Pencil  className="h-4 w-4"/>
                     </Button>
@@ -272,8 +292,15 @@ export const Productos = () => {
                             {subproduct.subprod_stock}
                           </TableCell>
                           <TableCell className="bg-muted/20 p-4">
-                            <Button size="icon" variant="ghost" onClick={() => console.log(product.prod_id)}>
-                              <AlignJustify  className="h-4 w-4" />
+                            <Button size="icon" variant="ghost"  onClick={() => {
+                              setTitleModalProduct({label: "Editar sub-producto", id: 3})
+                              setInputProd_id(subproduct.prod_id)
+                              setCate_id(product.cate_id)
+                              setInputProd_name(subproduct.subprod_name)
+                              setInputProd_stock(`${subproduct.subprod_stock}`)
+                              buttonNuevoProducto.current?.click()
+                            }}>
+                              <Pencil  className="h-4 w-4"/>
                             </Button>
                           </TableCell>
                         </TableRow>

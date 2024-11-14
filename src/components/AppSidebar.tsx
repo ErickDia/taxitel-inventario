@@ -24,18 +24,18 @@ const items = [
     icon: Inbox,
   },
   {
-    title: "Calendar",
-    url: "#",
+    title: "Categorias",
+    url: "categorias",
     icon: Calendar,
   },
   {
-    title: "Search",
-    url: "#",
+    title: "Reporte",
+    url: "reporte",
     icon: Search,
   },
   {
-    title: "Settings",
-    url: "#",
+    title: "Cliente",
+    url: "clientes",
     icon: Settings,
   },
 ]
