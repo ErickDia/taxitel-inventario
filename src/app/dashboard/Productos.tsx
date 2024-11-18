@@ -2,8 +2,8 @@
 import LayoutDash from './LayoutDash'
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Fragment, useRef, useState } from 'react'
-import { ChevronsUpDownIcon, Pencil, Plus } from 'lucide-react'
+import { Fragment, useEffect, useRef, useState } from 'react'
+import { ChevronsUpDownIcon, Package, Pencil, Plus } from 'lucide-react'
 
 import {
   Dialog,
@@ -34,6 +34,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import Categoria from '@/interfaces/categoria'
+import { requestApi } from '@/hooks/useRequestApi'
 
 
 
@@ -54,59 +56,80 @@ type Product = {
   subProducts?: SubProduct[]
 }
 
-const products: Product[] = [
-  {
-    prod_id: 1,
-    prod_name: "casquete",
-    prod_foto: "casquete.jpg",
-    prod_stock: 5,
-    cate_id: 2,
-    cate_nombre: "Accesorios para Vehiculo"
-  },
-  {
-    prod_id: 2,
-    prod_name: "Camisa verde clasica",
-    prod_foto: "Camisa.jpg",
-    prod_stock: 10,
-    cate_id: 1,
-    cate_nombre: "Ropa",
-    subProducts: [
-      {
-        subprod_id: 1,
-        subprod_name: 'Camisa verde clasica S',
-        prod_id: 2,
-        subprod_stock: 4
-      },
-      {
-        subprod_id: 2,
-        subprod_name: 'Camisa verde clasica M',
-        prod_id: 2,
-        subprod_stock: 4
-      },
-      {
-        subprod_id: 3,
-        subprod_name: 'Camisa verde clasica L',
-        prod_id: 2,
-        subprod_stock: 2
-      }
-    ]
-  },
-  // ...
-]
+// const products: Product[] = [
+//   {
+//     prod_id: 1,
+//     prod_name: "casquete",
+//     prod_foto: "casquete.jpg",
+//     prod_stock: 5,
+//     cate_id: 2,
+//     cate_nombre: "Accesorios para Vehiculo"
+//   },
+//   {
+//     prod_id: 2,
+//     prod_name: "Camisa verde clasica",
+//     prod_foto: "Camisa.jpg",
+//     prod_stock: 10,
+//     cate_id: 1,
+//     cate_nombre: "Ropa",
+//     subProducts: [
+//       {
+//         subprod_id: 1,
+//         subprod_name: 'Camisa verde clasica S',
+//         prod_id: 2,
+//         subprod_stock: 4
+//       },
+//       {
+//         subprod_id: 2,
+//         subprod_name: 'Camisa verde clasica M',
+//         prod_id: 2,
+//         subprod_stock: 4
+//       },
+//       {
+//         subprod_id: 3,
+//         subprod_name: 'Camisa verde clasica L',
+//         prod_id: 2,
+//         subprod_stock: 2
+//       }
+//     ]
+//   },
+//   // ...
+// ]
 
-const categorias = [
+// const categorias = [
+//   {
+//     cate_id: 1,
+//     cate_name: "Ropa",
+//   },
+//   {
+//     cate_id: 2,
+//     cate_name: "Accesorios Para Vehiculo",
+//   },
+// ]
+
+const clientes = [
   {
-    cate_id: 1,
-    cate_name: "Ropa",
+    cli_id: 1,
+    cli_name: "Erick",
+    cli_unidad: "T01",
+    cli_label: "T01 - Erick",
   },
   {
-    cate_id: 2,
-    cate_name: "Accesorios Para Vehiculo",
+    cli_id: 2,
+    cli_name: "Jorge",
+    cli_unidad: "T02",
+    cli_label: "T02 - Jorge",
   },
 ]
 
 
 export const Productos = () => {
+
+  const [products, setProducts] = useState<Product[]>([])
+
+  const [categorias, setCategorias] = useState<Categoria[]>([])
+  const [researchData, setResearchData] = useState(true)
+
 
   const [expandedRows, setExpandedRows] = useState<number[]>([])
   const toggleRowExpansion = (id: number) => {
@@ -117,122 +140,343 @@ export const Productos = () => {
     }
   }
 
-  // modal config
+  // modal config=================================
 
   const [titleModalProduct, setTitleModalProduct] = useState({label: "Crear Producto", id: 1})
 
+
+
   const [inputProd_id, setInputProd_id] = useState(0)
+  const [inputSubprod_id, setInputSubprod_id] = useState(0)
   const [inputProd_name, setInputProd_name] = useState("")
   const [inputProd_stock, setInputProd_stock] = useState("")
 
-
-  const [open, setOpen] = useState(false)
+  //config combobox
+  const [openComboCategorias, setOpenComboCategorias] = useState(false)
   const [cate_id, setCate_id] = useState(0)
+  //fin config combobox
 
   const buttonNuevoProducto = useRef<HTMLButtonElement>(null);
 
-  
+  // fin modal config=============================
 
-  // fin modal config
+  //modal config movimiento=======================
+  // const [inputProd_id, setInputProd_id] = useState(0)
+
+  const [typeModalMov, setTypeModalMov] = useState(1)
+  const [inputTipoMov, setInputTipoMovk] = useState("Entrada")
+  const [inputMovCantidad, setInputMovCantidad] = useState("")
+  const [inputMovComentario, setInputMovComentario] = useState("")
+
+  //config combobox
+  const [cli_id, setCli_id] = useState(0)
+  const [openComboClientes, setOpenComboClientes] = useState(false)
+  //fin config combobox
+
+  const buttonMovimiento = useRef<HTMLButtonElement>(null);
+  //fin modal config movimiento=======================
+
+
+
+  const sendFormProducto = () => {
+
+
+
+    console.log({
+      cate_id: cate_id,
+      prod_id: inputProd_id,
+      prod_name: inputProd_name,
+      prod_stock: inputProd_stock
+    });
+    if (inputProd_name && inputProd_stock != "" && cate_id) {
+      if (titleModalProduct.id == 1) {
+        requestApi({ url: `/api/v1/taxitel_inv/productos`, type: "POST" , data: {prod_name: inputProd_name, prod_stock: inputProd_stock, cate_id: cate_id}})
+        .then((data) => {
+          console.log(data);
+          setResearchData(!researchData);
+          buttonNuevoProducto.current?.click()
+    
+        });
+      } else if (titleModalProduct.id == 2) {
+        requestApi({ url: `/api/v1/taxitel_inv/productos/${inputProd_id}`, type: "PUT" , data: {prod_name: inputProd_name, cate_id: cate_id}})
+        .then((data) => {
+          console.log(data);
+          setResearchData(!researchData);
+          buttonNuevoProducto.current?.click()
+    
+        });
+      } else if (titleModalProduct.id == 3) {
+        requestApi({ url: `/api/v1/taxitel_inv/productos/sub`, type: "POST" , data: {subprod_name: inputProd_name, subprod_stock: inputProd_stock, prod_id: inputProd_id}})
+        .then((data) => {
+          console.log(data);
+          setResearchData(!researchData);
+          buttonNuevoProducto.current?.click()
+    
+        });
+      } else if (titleModalProduct.id == 4) {
+        requestApi({ url: `/api/v1/taxitel_inv/productos/sub/${inputSubprod_id}`, type: "PUT" , data: {subprod_name: inputProd_name}})
+        .then((data) => {
+          console.log(data);
+          setResearchData(!researchData);
+          buttonNuevoProducto.current?.click()
+    
+        });
+      }
+    }
+    
+
+  }
+
+  const sendFormMovimiento = () => {
+    if (inputTipoMov == "Entrada") {
+      if (typeModalMov == 1) {
+        console.log({
+          prod_id: inputProd_id,
+          mov_cantidad: inputMovCantidad,
+          new_prod_stock: parseInt(inputMovCantidad) + parseInt(inputProd_stock),
+          mov_comentario: inputMovComentario
+        });
+      } else {
+        console.log({
+          subprod_id: inputSubprod_id,
+          prod_id: inputProd_id,
+          mov_cantidad: inputMovCantidad,
+          new_prod_stock: parseInt(inputMovCantidad) + parseInt(inputProd_stock),
+          mov_comentario: inputMovComentario
+        });
+      }
+    }
+    
+    
+  }
+
+
+  useEffect(() => {
+    requestApi({ url: `/api/v1/taxitel_inv/categorias`, type: 'GET'})
+    .then(({ data }) => {
+      setCategorias(data);
+    });
+  }, [])
+
+  useEffect(() => {
+    requestApi({ url: `/api/v1/taxitel_inv/productos`, type: 'GET'})
+    .then(({ data }) => {
+      // console.log(data);
+      
+      setProducts(data);
+    });
+  }, [researchData])
 
   return (
     <LayoutDash>
-      {/* MODAL */}
+      <div className='flex gap-2'>
+        {/* MODAL PRODUCTO */}
 
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button variant="outline"  className='my-4 hidden' ref={buttonNuevoProducto}><Plus />Nuevo producto</Button>
-        </DialogTrigger>
-        <Button variant="outline"  className='my-4'  onClick={() => {
-                        setTitleModalProduct({label: "Crear producto", id: 1})
-                        setInputProd_id(0)
-                        setCate_id(0)
-                        setInputProd_name("")
-                        setInputProd_stock("")
-                        buttonNuevoProducto.current?.click()
-                      }}><Plus />Nuevo producto</Button>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>{titleModalProduct.label}</DialogTitle>
-            <DialogDescription>
-              Make changes to your profile here. Click save when you're done.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="prod_name" className="text-right">
-                Nombre
-              </Label>
-              <Input id="prod_name" value={inputProd_name} onChange={(e) => setInputProd_name(e.target.value)} className="col-span-3" />
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="outline"  className='my-4 hidden' ref={buttonNuevoProducto}><Plus />Nuevo producto</Button>
+          </DialogTrigger>
+          <Button variant="outline"  className='my-4'  onClick={() => {
+                          setTitleModalProduct({label: "Crear producto", id: 1})
+                          setInputProd_id(0)
+                          setInputSubprod_id(0)
+                          setCate_id(0)
+                          setInputProd_name("")
+                          setInputProd_stock("")
+                          buttonNuevoProducto.current?.click()
+                        }}><Plus />Nuevo producto</Button>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>{titleModalProduct.label}</DialogTitle>
+              <DialogDescription>
+                Make changes to your profile here. Click save when you're done.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="prod_name" className="text-right">
+                  Nombre
+                </Label>
+                <Input id="prod_name" value={inputProd_name} onChange={(e) => setInputProd_name(e.target.value)} className="col-span-3" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="prod_stock" className="text-right">
+                  Stock
+                </Label>
+                <Input id="prod_stock" value={inputProd_stock} onChange={(e) => setInputProd_stock(e.target.value)} className="col-span-3" type='number' disabled={titleModalProduct.id == 2 || titleModalProduct.id == 4}/>
+              </div>
+              <div className={"grid grid-cols-4 items-center gap-4" + ((titleModalProduct.id == 3 || titleModalProduct.id == 4) ? " hidden" : "")}>
+                <Label htmlFor="cate_id" className="text-right">
+                  Categoria
+                </Label>
+
+                {/* combobox */}
+
+                <Popover open={openComboCategorias} onOpenChange={setOpenComboCategorias}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={openComboCategorias}
+                      className="col-span-3 justify-between"
+                    >
+                      {cate_id
+                        ? categorias.find((categoria) => categoria.cate_id === cate_id)?.cate_name
+                        : "Seleccionar categoria..."}
+                      <ChevronsUpDown className="opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[200px] p-0">
+                    <Command>
+                      <CommandInput placeholder="Buscar categoria..." className="h-9" />
+                      <CommandList>
+                        <CommandEmpty>No se econtro la categoria.</CommandEmpty>
+                        <CommandGroup>
+                          {categorias.map((categoria) => (
+                            <CommandItem
+                              key={categoria.cate_id}
+                              value={`${categoria.cate_name}`}
+                              onSelect={() => {
+                                if (categoria.cate_id == cate_id) {
+                                  setCate_id(0)
+                                } else {
+                                  setCate_id(categoria.cate_id === cate_id ? 0 : categoria.cate_id)
+                                }
+                                setOpenComboCategorias(false)
+                              }}
+                            >
+                              {categoria.cate_name}
+                              <Check
+                                className={cn(
+                                  "ml-auto",
+                                  cate_id === categoria.cate_id ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+
+                {/* fin combobox */}
+              </div>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="prod_stock" className="text-right">
-                Stock
-              </Label>
-              <Input id="prod_stock" value={inputProd_stock} onChange={(e) => setInputProd_stock(e.target.value)} className="col-span-3" type='number' disabled={titleModalProduct.id != 1}/>
+            <DialogFooter>
+              <Button type="submit" onClick={() => {sendFormProducto()}}>Guardar cambios</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* FIN MODAL PRODUCTO */}
+
+
+        {/* MODAL MOVIMIENTO */}
+
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="outline"  className='my-4 hidden' ref={buttonMovimiento}><Plus />Crear Movimiento</Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Nuevo Movimiento</DialogTitle>
+              <DialogDescription>
+                Make changes to your profile here. Click save when you're done.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-5 items-center gap-5">
+                <Label htmlFor="mov_tipo" className="text-right">
+                    Tipo
+                </Label>
+                <div className="col-span-2 gap-2 flex">
+                  <input type='radio' id="mov_tipo_entrada" name='mov_tipo' value="Entrada" onChange={() => setInputTipoMovk("Entrada")} checked={inputTipoMov == "Entrada"}/>
+                  <Label htmlFor="mov_tipo_entrada">Entrada</Label>
+                </div>
+                <div className="col-span-2 gap-2 flex">
+                  <input type='radio' id="mov_tipo_salida" name='mov_tipo' value="Salida" onChange={() => setInputTipoMovk("Salida")} checked={inputTipoMov == "Salida"}/>
+                  <Label htmlFor="mov_tipo_salida">Salida</Label>
+                </div>
+              </div>
+              {
+                inputTipoMov == "Salida" ? (
+                  <div className={"grid grid-cols-5 items-center gap-5" + ((titleModalProduct.id == 3 || titleModalProduct.id == 4) ? " hidden" : "")}>
+                <Label htmlFor="cate_id" className="text-right">
+                  Cliente
+                </Label>
+
+                {/* combobox */}
+
+                <Popover open={openComboClientes} onOpenChange={setOpenComboClientes}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={openComboClientes}
+                      className="col-span-4 justify-between"
+                    >
+                      {cli_id
+                        ? clientes.find((cliente) => cliente.cli_id === cli_id)?.cli_label
+                        : "Seleccionar cliente..."}
+                      <ChevronsUpDown className="opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[200px] p-0">
+                    <Command>
+                      <CommandInput placeholder="Buscar cliente..." className="h-9" />
+                      <CommandList>
+                        <CommandEmpty>No se econtro el cliente.</CommandEmpty>
+                        <CommandGroup>
+                          {clientes.map((cliente) => (
+                            <CommandItem
+                              key={cliente.cli_id}
+                              value={`${cliente.cli_label}`}
+                              onSelect={(currentValue) => {
+                                setCli_id(parseInt(currentValue) === cli_id ? 0 : parseInt(currentValue))
+                                setOpenComboClientes(false)
+                              }}
+                            >
+                              {cliente.cli_label}
+                              <Check
+                                className={cn(
+                                  "ml-auto",
+                                  cli_id === cliente.cli_id ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+
+                {/* fin combobox */}
+              </div>
+                ) : ''
+              }
+              <div className="grid grid-cols-5 items-center gap-5">
+                <Label htmlFor="mov_cantidad" className="text-right">
+                  Cantidad
+                </Label>
+                <Input id="mov_cantidad" value={inputMovCantidad} onChange={(e) => setInputMovCantidad(e.target.value)} className="col-span-4" type="number"/>
+              </div>
+              <div className="grid grid-cols-5 items-center gap-5">
+                <Label htmlFor="mov_comentario" className="text-right">
+                  Comentario
+                </Label>
+                <Input id="mov_comentario" value={inputMovComentario} onChange={(e) => setInputMovComentario(e.target.value)} className="col-span-4"/>
+              </div>
             </div>
-            <div className={"grid grid-cols-4 items-center gap-4" + ((titleModalProduct.id == 3 || titleModalProduct.id == 4) ? " hidden" : "")}>
-              <Label htmlFor="cate_id" className="text-right">
-                Categoria
-              </Label>
+            <DialogFooter>
+              <Button type="submit" onClick={() => {sendFormMovimiento()}}>Guardar cambios</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
-              {/* combobox */}
-
-              <Popover open={open} onOpenChange={setOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={open}
-                    className="col-span-3 justify-between"
-                  >
-                    {cate_id
-                      ? categorias.find((categoria) => categoria.cate_id === cate_id)?.cate_name
-                      : "Seleccionar categoria..."}
-                    <ChevronsUpDown className="opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[200px] p-0">
-                  <Command>
-                    <CommandInput placeholder="Buscar categoria..." className="h-9" />
-                    <CommandList>
-                      <CommandEmpty>No se econtro la categoria.</CommandEmpty>
-                      <CommandGroup>
-                        {categorias.map((categoria) => (
-                          <CommandItem
-                            key={categoria.cate_id}
-                            value={`${categoria.cate_id}`}
-                            onSelect={(currentValue) => {
-                              setCate_id(parseInt(currentValue) === cate_id ? 0 : parseInt(currentValue))
-                              setOpen(false)
-                            }}
-                          >
-                            {categoria.cate_name}
-                            <Check
-                              className={cn(
-                                "ml-auto",
-                                cate_id === categoria.cate_id ? "opacity-100" : "opacity-0"
-                              )}
-                            />
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-
-              {/* fin combobox */}
-            </div>
-          </div>
-          <DialogFooter>
-            <Button type="submit">Guardar cambios</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* FIN MODAL */}
-
+        {/* FIN MODAL MOVIMIENTO */}
+      </div>                   
 
       <div className="border rounded-lg shadow-sm">
         <Table>
@@ -257,6 +501,7 @@ export const Productos = () => {
                     <Button size="icon" variant="ghost" onClick={() => {
                         setTitleModalProduct({label: "Editar producto",id: 2})
                         setInputProd_id(product.prod_id)
+                        setInputSubprod_id(0)
                         setCate_id(product.cate_id)
                         setInputProd_name(product.prod_name)
                         setInputProd_stock(`${product.prod_stock}`)
@@ -270,6 +515,7 @@ export const Productos = () => {
                     <Button size="icon" variant="ghost" onClick={() => {
                         setTitleModalProduct({label: "Crear sub-producto",id: 3})
                         setInputProd_id(product.prod_id)
+                        setInputSubprod_id(0)
                         setCate_id(product.cate_id)
                         setInputProd_name("")
                         setInputProd_stock("")
@@ -278,6 +524,21 @@ export const Productos = () => {
                       }}>
                       <Plus />
                     </Button>
+                    {
+                      product.subProducts ? "" : (
+                        <Button size="icon" variant="ghost" onClick={() => {
+                          setTypeModalMov(1)
+                          setInputMovCantidad("")
+                          setInputMovComentario("")
+                          setInputProd_id(product.prod_id)
+                          setInputProd_stock(`${product.prod_stock}`)
+                          buttonMovimiento.current?.click()
+                        }}>
+                          <Package />
+                        </Button>
+                      )
+                    }
+                    
                     {
                       product.subProducts ? (
                         <Button size="icon" variant="ghost" onClick={() => toggleRowExpansion(product.prod_id)}>
@@ -292,7 +553,7 @@ export const Productos = () => {
                   product.subProducts ? (
                     expandedRows.includes(product.prod_id) && (
                       product.subProducts.map((subproduct) => (
-                        <TableRow>
+                        <TableRow key={subproduct.subprod_id}>
                           <TableCell className="bg-muted/20 p-4 w-1/4">
                             {subproduct.subprod_name}
                           </TableCell>
@@ -303,12 +564,24 @@ export const Productos = () => {
                             <Button size="icon" variant="ghost"  onClick={() => {
                               setTitleModalProduct({label: "Editar sub-producto", id: 4})
                               setInputProd_id(subproduct.prod_id)
+                              setInputSubprod_id(subproduct.subprod_id)
                               setCate_id(product.cate_id)
                               setInputProd_name(subproduct.subprod_name)
                               setInputProd_stock(`${subproduct.subprod_stock}`)
                               buttonNuevoProducto.current?.click()
                             }}>
                               <Pencil  className="h-4 w-4"/>
+                            </Button>
+                            <Button size="icon" variant="ghost" onClick={() => {
+                              setTypeModalMov(2)
+                              setInputMovCantidad("")
+                              setInputMovComentario("")
+                              setInputProd_id(subproduct.prod_id)
+                              setInputSubprod_id(subproduct.subprod_id)
+                              setInputProd_stock(`${subproduct.subprod_stock}`)
+                              buttonMovimiento.current?.click()
+                            }}>
+                              <Package />
                             </Button>
                           </TableCell>
                         </TableRow>

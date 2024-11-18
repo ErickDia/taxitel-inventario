@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import LayoutDash from './LayoutDash'
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
-import { Fragment, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { Pencil, Plus } from 'lucide-react';
 
 import {
@@ -15,33 +15,64 @@ import {
   } from "@/components/ui/dialog"
   import { Input } from "@/components/ui/input"
   import { Label } from "@/components/ui/label"
-
-type Categoria = {
-    cate_id: number
-    cate_name: string
-  }
+import { requestApi } from '@/hooks/useRequestApi';
+import Categoria from '@/interfaces/categoria';
 
   
-const categorias: Categoria[] = [
-    {
-        cate_id: 1,
-        cate_name: "Ropa",
-    },
-    {
-        cate_id: 2,
-      cate_name: "Accesorios para Vehiculo",
-    },
-    // ...
-  ]
+// const categorias: Categoria[] = [
+//     {
+//         cate_id: 1,
+//         cate_name: "Ropa",
+//     },
+//     {
+//         cate_id: 2,
+//       cate_name: "Accesorios para Vehiculo",
+//     },
+//     // ...
+//   ]
 
 export const Categorias = () => {
 
+  const [categorias, setCategorias] = useState<Categoria[]>([])
+  const [researchData, setResearchData] = useState(true)
 
   const [titleModalCategoria, setTitleModalCategoria] = useState({label: "Crear Categoria", id: 1})
   const [inputCate_id, setInputCate_id] = useState(0)
   const [inputCate_name, setInputCate_name] = useState("")
 
   const buttonNuevaCategoria = useRef<HTMLButtonElement>(null);
+
+
+
+  const SendForm = () => {
+    
+    // console.log({
+    //   id: inputCate_id,
+    //   cate_name: inputCate_name
+    // });
+
+    if (inputCate_name) {
+      const typeRequest = titleModalCategoria.id == 1 ? "POST" : "PUT"
+    
+      requestApi({ url: `/api/v1/taxitel_inv/categorias${typeRequest == "POST" ? "" : `/${inputCate_id}`}`, type: typeRequest , data: {cate_name: inputCate_name}})
+      .then((data) => {
+        console.log(data);
+        setResearchData(!researchData);
+        buttonNuevaCategoria.current?.click()
+  
+      });
+    }
+
+    
+  }
+
+  useEffect(() => {
+      requestApi({ url: `/api/v1/taxitel_inv/categorias`, type: 'GET'})
+      .then(({ data }) => {
+        setCategorias(data);
+      });
+  }, [researchData])
+  
 
 
   return (
@@ -74,7 +105,7 @@ export const Categorias = () => {
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button type="submit">Guardar cambios</Button>
+                    <Button type="submit" onClick={() => {SendForm()}}>Guardar cambios</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

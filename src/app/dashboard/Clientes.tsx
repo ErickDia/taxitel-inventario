@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import LayoutDash from './LayoutDash'
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
-import { Fragment, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { Pencil, Plus, ShoppingCart } from 'lucide-react';
 
 import {
@@ -15,6 +15,7 @@ import {
   } from "@/components/ui/dialog"
   import { Input } from "@/components/ui/input"
   import { Label } from "@/components/ui/label"
+import { requestApi } from '@/hooks/useRequestApi';
 
 
 type Cli_inventario = {
@@ -35,52 +36,55 @@ type Cliente = {
     cli_inventario: Cli_inventario[]
 }
 
-const clientes: Cliente[] = [
-    {
-        cli_id: 1,
-        cli_name: "Erick",
-        cli_unidad: "T01",
-        cli_inventario: [
-            {
-                cliinv_id: 1,
-                prod_id: 1,
-                prod_name: "Casquete",
-                prod_foto: "casquete.jpg",
-                prod_cantidad: 1,
-                cliinv_comentario: "nuevo conductor"
-            }
-        ]
-    },
-    {
-        cli_id: 1,
-        cli_name: "Jorge",
-        cli_unidad: "T02",
-        cli_inventario: [
-            {
-                cliinv_id: 1,
-                prod_id: 1,
-                prod_name: "Casquete",
-                prod_foto: "casquete.jpg",
-                prod_cantidad: 1,
-                cliinv_comentario: ""
-            },
-            {
-                cliinv_id: 1,
-                prod_id: 1,
-                prod_name: "Camisa verde clasica",
-                prod_foto: "Camisa_verde_clasica.jpg",
-                subprod_id: 2,
-                subprod_name: "Camisa verde clasica M",
-                prod_cantidad: 3,
-                cliinv_comentario: "nuevo conductor"
-            }
-        ]
-    },
-    // ...
-  ]
+// const clientes: Cliente[] = [
+//     {
+//         cli_id: 1,
+//         cli_name: "Erick",
+//         cli_unidad: "T01",
+//         cli_inventario: [
+//             {
+//                 cliinv_id: 1,
+//                 prod_id: 1,
+//                 prod_name: "Casquete",
+//                 prod_foto: "casquete.jpg",
+//                 prod_cantidad: 1,
+//                 cliinv_comentario: "nuevo conductor"
+//             }
+//         ]
+//     },
+//     {
+//         cli_id: 2,
+//         cli_name: "Jorge",
+//         cli_unidad: "T02",
+//         cli_inventario: [
+//             {
+//                 cliinv_id: 1,
+//                 prod_id: 1,
+//                 prod_name: "Casquete",
+//                 prod_foto: "casquete.jpg",
+//                 prod_cantidad: 1,
+//                 cliinv_comentario: ""
+//             },
+//             {
+//                 cliinv_id: 1,
+//                 prod_id: 1,
+//                 prod_name: "Camisa verde clasica",
+//                 prod_foto: "Camisa_verde_clasica.jpg",
+//                 subprod_id: 2,
+//                 subprod_name: "Camisa verde clasica M",
+//                 prod_cantidad: 3,
+//                 cliinv_comentario: "nuevo conductor"
+//             }
+//         ]
+//     },
+//     // ...
+//   ]
 
 export const Clientes = () => {
 
+    const [clientes, setClientes] = useState<Cliente[]>([])
+    const [researchData, setResearchData] = useState(true)
+    
     // Dialog CLIENTES
 
     const [titleModalCliente, setTitleModalCliente] = useState({label: "Crear Cliente", id: 1})
@@ -98,6 +102,49 @@ export const Clientes = () => {
     const [dataInventario, setDataInventario] = useState<Cli_inventario[]>([])
 
     // FIN Dialog CLIENTES INVENTARIOS
+
+
+    const sendFormProducto = () => {
+
+
+
+        console.log({
+          cli_unidad: inputCli_unidad,
+          cli_name: inputCli_name,
+        });
+        if (inputCli_unidad && inputCli_name) {
+          if (titleModalCliente.id == 1) {
+            requestApi({ url: `/api/v1/taxitel_inv/clientes`, type: "POST" , data: {cli_unidad: inputCli_unidad, cli_name: inputCli_name}})
+            .then((data) => {
+              console.log(data);
+              setResearchData(!researchData);
+              buttonNuevoCliente.current?.click()
+        
+            });
+          } else if (titleModalCliente.id == 2) {
+            requestApi({ url: `/api/v1/taxitel_inv/clientes/${inputCli_id}`, type: "PUT" , data: {cli_unidad: inputCli_unidad, cli_name: inputCli_name}})
+            .then((data) => {
+              console.log(data);
+              setResearchData(!researchData);
+              buttonNuevoCliente.current?.click()
+        
+            });
+          }
+        }
+        
+    
+    }
+
+
+
+    useEffect(() => {
+        requestApi({ url: `/api/v1/taxitel_inv/clientes`, type: 'GET'})
+        .then(({ data }) => {
+            console.log(data);
+            
+            setClientes(data);
+        });
+    }, [researchData])
 
 
     return (
@@ -137,7 +184,7 @@ export const Clientes = () => {
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button type="submit">Guardar cambios</Button>
+                        <Button type="submit" onClick={() => {sendFormProducto()}}>Guardar cambios</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
