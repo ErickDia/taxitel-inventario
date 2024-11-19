@@ -1,4 +1,4 @@
-import {  Home, Search, Settings, LayoutGrid, Shirt, ClipboardMinus, UserRound } from "lucide-react"
+import {  Home, LayoutGrid, Shirt, ClipboardMinus, UserRound } from "lucide-react"
 
 import {
   Sidebar,

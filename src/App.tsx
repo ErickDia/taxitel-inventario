@@ -1,7 +1,6 @@
 
-import { Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes } from 'react-router-dom'
 import './App.css'
-import { Login } from './app/login/Login.tsx'
 import { RouterPanel } from './app/dashboard/RouterPanel.tsx'
 
 function App() {
@@ -10,8 +9,11 @@ function App() {
     <>
       <Routes>
           <Route path='/dashboard/*' element={<RouterPanel />} />
-          <Route path='/login' element={<Login />} />
-          <Route path='/*' element={<Login/>} />
+          {/* <Route path='/login' element={<Login />} />
+          <Route path='/*' element={<Login/>} /> */}
+          <Route path='/login' element={<Navigate to="/dashboard/home" />} />
+          <Route path='/*' element={<Navigate to="/dashboard/home" />} />
+          
       </Routes>
       
     </>

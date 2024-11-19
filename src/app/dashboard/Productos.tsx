@@ -8,7 +8,7 @@ import { ChevronsUpDownIcon, Package, Pencil, Plus } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
+  // DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -37,7 +37,6 @@ import {
 import Categoria from '@/interfaces/categoria'
 import { requestApi } from '@/hooks/useRequestApi'
 import { useToast } from '@/hooks/use-toast'
-import { Toaster } from '@/components/ui/toaster'
 
 
 
@@ -54,7 +53,7 @@ type Product = {
   prod_foto: string
   prod_stock: number
   cate_id: number
-  cate_nombre: string
+  cate_name: string
   subProducts?: SubProduct[]
 }
 
@@ -188,7 +187,6 @@ export const Productos = () => {
 
   const sendFormProducto = () => {
 
-    setblockButtonProducto(true)
 
     console.log({
       cate_id: cate_id,
@@ -197,6 +195,7 @@ export const Productos = () => {
       prod_stock: inputProd_stock
     });
     if (inputProd_name && inputProd_stock != "" && cate_id) {
+      setblockButtonProducto(true)
       if (titleModalProduct.id == 1) {
         requestApi({ url: `/api/v1/taxitel_inv/productos`, type: "POST" , data: {prod_name: inputProd_name, prod_stock: inputProd_stock, cate_id: cate_id}})
         .then((data) => {
@@ -212,6 +211,9 @@ export const Productos = () => {
         requestApi({ url: `/api/v1/taxitel_inv/productos/${inputProd_id}`, type: "PUT" , data: {prod_name: inputProd_name, cate_id: cate_id}})
         .then((data) => {
           console.log(data);
+          toast({
+            description: data.message,
+          })
           setResearchData(!researchData);
           buttonNuevoProducto.current?.click()
     
@@ -220,6 +222,9 @@ export const Productos = () => {
         requestApi({ url: `/api/v1/taxitel_inv/productos/sub`, type: "POST" , data: {subprod_name: inputProd_name, subprod_stock: inputProd_stock, prod_id: inputProd_id}})
         .then((data) => {
           console.log(data);
+          toast({
+            description: data.message,
+          })
           setResearchData(!researchData);
           buttonNuevoProducto.current?.click()
     
@@ -228,11 +233,19 @@ export const Productos = () => {
         requestApi({ url: `/api/v1/taxitel_inv/productos/sub/${inputSubprod_id}`, type: "PUT" , data: {subprod_name: inputProd_name}})
         .then((data) => {
           console.log(data);
+          toast({
+            description: data.message,
+          })
           setResearchData(!researchData);
           buttonNuevoProducto.current?.click()
     
         });
       }
+    } else {
+      toast({
+        variant: "destructive",
+        description: "Complete todos los campos obligatorios.",
+      })
     }
     
 
@@ -240,74 +253,104 @@ export const Productos = () => {
 
   const sendFormMovimiento = () => {
 
-    setblockButtonMovimiento(true)
 
     if (inputTipoMov == "Entrada") {
-      if (typeModalMov == 1) {
-        requestApi({ url: `/api/v1/taxitel_inv/movimientos/entrada/`, type: 'POST', data: {
-          prod_id: inputProd_id,
-          mov_cantidad: inputMovCantidad,
-          new_prod_stock: parseInt(inputMovCantidad) + parseInt(inputProd_stock),
-          mov_comentario: inputMovComentario,
-          subprod_id: 0,
-          cli_id: 0
-        }})
-        .then(() => {
-          setResearchData(!researchData);
-          buttonMovimiento.current?.click()
-        });
+      if (inputMovCantidad) {
+        setblockButtonMovimiento(true)
+
+        if (typeModalMov == 1) {
+          requestApi({ url: `/api/v1/taxitel_inv/movimientos/entrada/`, type: 'POST', data: {
+            prod_id: inputProd_id,
+            mov_cantidad: inputMovCantidad,
+            new_prod_stock: parseInt(inputMovCantidad) + parseInt(inputProd_stock),
+            mov_comentario: inputMovComentario,
+            subprod_id: 0,
+            cli_id: 0
+          }})
+          .then((data) => {
+            toast({
+              description: data.message,
+            })
+            setResearchData(!researchData);
+            buttonMovimiento.current?.click()
+          });
+        } else {
+          requestApi({ url: `/api/v1/taxitel_inv/movimientos/entrada/`, type: 'POST', data: {
+            prod_id: inputProd_id,
+            mov_cantidad: inputMovCantidad,
+            new_prod_stock: parseInt(inputMovCantidad) + parseInt(inputProd_stock),
+            mov_comentario: inputMovComentario,
+            subprod_id: inputSubprod_id,
+            cli_id: 0
+  
+          }})
+          .then((data) => {
+            // setCategorias(data);
+            toast({
+              description: data.message,
+            })
+            setResearchData(!researchData);
+            buttonMovimiento.current?.click()
+  
+  
+          });
+        }
       } else {
-        requestApi({ url: `/api/v1/taxitel_inv/movimientos/entrada/`, type: 'POST', data: {
-          prod_id: inputProd_id,
-          mov_cantidad: inputMovCantidad,
-          new_prod_stock: parseInt(inputMovCantidad) + parseInt(inputProd_stock),
-          mov_comentario: inputMovComentario,
-          subprod_id: inputSubprod_id,
-          cli_id: 0
-
-        }})
-        .then(() => {
-          // setCategorias(data);
-          setResearchData(!researchData);
-          buttonMovimiento.current?.click()
-
-
-        });
+        toast({
+          variant: "destructive",
+          description: "Complete todos los campos obligatorios.",
+        })
       }
+      
     } else {
-      if (typeModalMov == 1) {
-        console.log(cli_id);
-        
-        requestApi({ url: `/api/v1/taxitel_inv/movimientos/salida/`, type: 'POST', data: {
-          prod_id: inputProd_id,
-          mov_cantidad: inputMovCantidad,
-          new_prod_stock: parseInt(inputProd_stock) - parseInt(inputMovCantidad),
-          mov_comentario: inputMovComentario,
-          subprod_id: 0,
-          cli_id: cli_id
-        }})
-        .then(() => {
-          setResearchData(!researchData);
-          buttonMovimiento.current?.click()
-        });
+      if (inputMovCantidad) {
+        setblockButtonMovimiento(true)
+        if (typeModalMov == 1) {
+          console.log(cli_id);
+          
+          requestApi({ url: `/api/v1/taxitel_inv/movimientos/salida/`, type: 'POST', data: {
+            prod_id: inputProd_id,
+            mov_cantidad: inputMovCantidad,
+            new_prod_stock: parseInt(inputProd_stock) - parseInt(inputMovCantidad),
+            mov_comentario: inputMovComentario,
+            subprod_id: 0,
+            cli_id: cli_id
+          }})
+          .then((data) => {
+            toast({
+              description: data.message,
+            })
+            setResearchData(!researchData);
+            buttonMovimiento.current?.click()
+          });
+        } else {
+          requestApi({ url: `/api/v1/taxitel_inv/movimientos/salida/`, type: 'POST', data: {
+            prod_id: inputProd_id,
+            mov_cantidad: inputMovCantidad,
+            new_prod_stock: parseInt(inputProd_stock) - parseInt(inputMovCantidad),
+            mov_comentario: inputMovComentario,
+            subprod_id: inputSubprod_id,
+            cli_id: cli_id
+  
+          }})
+          .then((data) => {
+            // setCategorias(data);
+            toast({
+              description: data.message,
+            })
+            setResearchData(!researchData);
+            buttonMovimiento.current?.click()
+  
+  
+          });
+        }
       } else {
-        requestApi({ url: `/api/v1/taxitel_inv/movimientos/salida/`, type: 'POST', data: {
-          prod_id: inputProd_id,
-          mov_cantidad: inputMovCantidad,
-          new_prod_stock: parseInt(inputProd_stock) - parseInt(inputMovCantidad),
-          mov_comentario: inputMovComentario,
-          subprod_id: inputSubprod_id,
-          cli_id: cli_id
-
-        }})
-        .then(() => {
-          // setCategorias(data);
-          setResearchData(!researchData);
-          buttonMovimiento.current?.click()
-
-
-        });
+        toast({
+          variant: "destructive",
+          description: "Complete todos los campos obligatorios.",
+        })
       }
+      
     }
     
     
@@ -324,7 +367,7 @@ export const Productos = () => {
   useEffect(() => {
     requestApi({ url: `/api/v1/taxitel_inv/productos`, type: 'GET'})
     .then(({ data }) => {
-      // console.log(data);
+      console.log(data);
       
       setProducts(data);
     });
@@ -353,26 +396,26 @@ export const Productos = () => {
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle>{titleModalProduct.label}</DialogTitle>
-              <DialogDescription>
+              {/* <DialogDescription>
                 Make changes to your profile here. Click save when you're done.
-              </DialogDescription>
+              </DialogDescription> */}
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="prod_name" className="text-right">
-                  Nombre
+                  Nombre*
                 </Label>
                 <Input id="prod_name" value={inputProd_name} onChange={(e) => setInputProd_name(e.target.value)} className="col-span-3" />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="prod_stock" className="text-right">
-                  Stock
+                  Stock*
                 </Label>
                 <Input id="prod_stock" value={inputProd_stock} onChange={(e) => setInputProd_stock(e.target.value)} className="col-span-3" type='number' disabled={titleModalProduct.id == 2 || titleModalProduct.id == 4}/>
               </div>
               <div className={"grid grid-cols-4 items-center gap-4" + ((titleModalProduct.id == 3 || titleModalProduct.id == 4) ? " hidden" : "")}>
                 <Label htmlFor="cate_id" className="text-right">
-                  Categoria
+                  Categoria*
                 </Label>
 
                 {/* combobox */}
@@ -443,12 +486,12 @@ export const Productos = () => {
           <DialogTrigger asChild>
             <Button variant="outline"  className='my-4 hidden' ref={buttonMovimiento}><Plus />Crear Movimiento</Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle>Nuevo Movimiento</DialogTitle>
-              <DialogDescription>
+              {/* <DialogDescription>
                 Make changes to your profile here. Click save when you're done.
-              </DialogDescription>
+              </DialogDescription> */}
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-5 items-center gap-5">
@@ -468,7 +511,7 @@ export const Productos = () => {
                 inputTipoMov == "Salida" ? (
                   <div className={"grid grid-cols-5 items-center gap-5" + ((titleModalProduct.id == 3 || titleModalProduct.id == 4) ? " hidden" : "")}>
                 <Label htmlFor="cate_id" className="text-right">
-                  Cliente
+                  Cliente*
                 </Label>
 
                 {/* combobox */}
@@ -525,7 +568,7 @@ export const Productos = () => {
               }
               <div className="grid grid-cols-5 items-center gap-5">
                 <Label htmlFor="mov_cantidad" className="text-right">
-                  Cantidad
+                  Cantidad*
                 </Label>
                 <Input id="mov_cantidad" value={inputMovCantidad} onChange={(e) => setInputMovCantidad(e.target.value)} className="col-span-4" type="number"/>
               </div>
@@ -563,7 +606,7 @@ export const Productos = () => {
                 <TableRow>
                   <TableCell className="font-medium w-1/4">{product.prod_name}</TableCell>
                   <TableCell>{product.prod_stock}</TableCell>
-                  <TableCell>{product.cate_nombre}</TableCell>
+                  <TableCell>{product.cate_name}</TableCell>
                   <TableCell className="w-1/6 ">
                     <Button size="icon" variant="ghost" onClick={() => {
                         setTitleModalProduct({label: "Editar producto",id: 2})
@@ -667,7 +710,6 @@ export const Productos = () => {
           </TableBody>
         </Table>
       </div>
-      <Toaster />
     </LayoutDash>
   )
 }

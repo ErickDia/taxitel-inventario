@@ -1,5 +1,5 @@
 
-import { Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes } from 'react-router-dom'
 import Home from './Home'
 import { Productos } from './Productos'
 import { Categorias } from './Categorias'
@@ -15,7 +15,7 @@ export const RouterPanel = () => {
         <Route path='/reporte' element={<Reporte />} />
         <Route path='/clientes' element={<Clientes />} />
         <Route path='/home' element={<Home />} />
-        <Route path='/*' element={<Home />} />
+        <Route path='/*' element={<Navigate to="/home" />} />
     </Routes>
   )
 }

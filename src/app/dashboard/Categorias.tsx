@@ -7,7 +7,7 @@ import { Pencil, Plus } from 'lucide-react';
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
+    // DialogDescription,
     DialogFooter,
     DialogHeader,
     DialogTitle,
@@ -17,6 +17,7 @@ import {
   import { Label } from "@/components/ui/label"
 import { requestApi } from '@/hooks/useRequestApi';
 import Categoria from '@/interfaces/categoria';
+import { useToast } from '@/hooks/use-toast';
 
   
 // const categorias: Categoria[] = [
@@ -41,8 +42,10 @@ export const Categorias = () => {
   const [inputCate_name, setInputCate_name] = useState("")
 
   const buttonNuevaCategoria = useRef<HTMLButtonElement>(null);
+  const [blockButtonCategoria, setblockButtonCategoria] = useState(false)
 
 
+  const { toast } = useToast()
 
   const SendForm = () => {
     
@@ -52,15 +55,24 @@ export const Categorias = () => {
     // });
 
     if (inputCate_name) {
+      setblockButtonCategoria(true)
       const typeRequest = titleModalCategoria.id == 1 ? "POST" : "PUT"
     
       requestApi({ url: `/api/v1/taxitel_inv/categorias${typeRequest == "POST" ? "" : `/${inputCate_id}`}`, type: typeRequest , data: {cate_name: inputCate_name}})
       .then((data) => {
         console.log(data);
+        toast({
+          description: data.message,
+        })
         setResearchData(!researchData);
         buttonNuevaCategoria.current?.click()
   
       });
+    } else {
+      toast({
+        variant: "destructive",
+        description: "Complete todos los campos obligatorios.",
+      })
     }
 
     
@@ -84,6 +96,7 @@ export const Categorias = () => {
             <Button variant="outline"  className='my-4 hidden' ref={buttonNuevaCategoria}><Plus />Nueva categoria</Button>
             </DialogTrigger>
             <Button variant="outline"  className='my-4'  onClick={() => {
+                            setblockButtonCategoria(false)
                             setTitleModalCategoria({label: "Crear categoria", id: 1})
                             setInputCate_name("")
                             setInputCate_id(0)
@@ -92,20 +105,20 @@ export const Categorias = () => {
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                     <DialogTitle>{titleModalCategoria.label}</DialogTitle>
-                    <DialogDescription>
+                    {/* <DialogDescription>
                         Make changes to your profile here. Click save when you're done.
-                    </DialogDescription>
+                    </DialogDescription> */}
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                     <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="cate_name" className="text-right">
-                        Nombre
+                        Nombre*
                     </Label>
                     <Input id="cate_name" value={inputCate_name} onChange={(e) => setInputCate_name(e.target.value)} className="col-span-3" />
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button type="submit" onClick={() => {SendForm()}}>Guardar cambios</Button>
+                    <Button type="submit" onClick={() => {SendForm()}} disabled = {blockButtonCategoria}>Guardar cambios</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
@@ -128,6 +141,7 @@ export const Categorias = () => {
                   <TableCell className="font-medium w-1/4">{categoria.cate_name}</TableCell>
                   <TableCell className="w-1/6 ">
                     <Button size="icon" variant="ghost" onClick={() => {
+                        setblockButtonCategoria(false)
                         setTitleModalCategoria({label: "Editar categoria",id: 2})
                         setInputCate_name(categoria.cate_name)
                         setInputCate_id(categoria.cate_id)

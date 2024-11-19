@@ -1,10 +1,15 @@
-import { Button } from '@/components/ui/button';
+
 import LayoutDash from './LayoutDash'
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
-import { Fragment, useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { requestApi } from '@/hooks/useRequestApi';
+
+import * as XLSX from "xlsx";
+import { Sheet } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { saveAs } from 'file-saver';
 
   type Movimiento = {
     mov_id: number
@@ -59,7 +64,7 @@ import { requestApi } from '@/hooks/useRequestApi';
 
 export const Reporte = () => {
 
-    const [researchData, setResearchData] = useState(true)
+    // const [researchData, setResearchData] = useState(true)
     const [movimientos, setMovimientos] = useState<Movimiento[]>([])
 
 
@@ -69,6 +74,24 @@ export const Reporte = () => {
 
     // const buttonNuevaCategoria = useRef<HTMLButtonElement>(null);
 
+    const exportToExcel = (jsonData:Movimiento[], fileName:string) => {
+        // Crear una hoja de trabajo a partir de los datos JSON
+        const worksheet = XLSX.utils.json_to_sheet(jsonData);
+        
+        // Crear un libro de trabajo y agregar la hoja
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Datos");
+        
+        // Generar un archivo Excel
+        const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+        
+        // Guardar el archivo usando FileSaver
+        const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
+        saveAs(blob, `${fileName}.xlsx`);
+    };
+
+
+
     useEffect(() => {
         requestApi({ url: `/api/v1/taxitel_inv/movimientos`, type: 'GET'})
         .then(({ data }) => {
@@ -76,11 +99,11 @@ export const Reporte = () => {
             
             setMovimientos(data);
         });
-    }, [researchData])
+    }, [])
 
     return (
         <LayoutDash>
-
+            <Button variant="outline"  className='my-4' onClick={() => exportToExcel(movimientos, "Reporte Inv Taxitel")} ><Sheet />Exportar</Button>
             <div className="border rounded-lg shadow-sm">
             <Table>
             <TableHeader>
@@ -101,7 +124,7 @@ export const Reporte = () => {
                     <TableRow>
                         <TableCell className="font-medium w-1/8"><Badge className={movimiento.mov_tipo == 1 ? 'bg-green-700' : 'bg-red-700'}>{movimiento.mov_tipo == 1 ? "Entrada" : "Salida"}</Badge></TableCell>
                         <TableCell className="font-medium">{movimiento.mov_tipo == 1 ? "-" : `${movimiento.cli_name} - ${movimiento.cli_unidad}`}</TableCell>
-                        <TableCell className="font-medium">{movimiento.subprod_name ? movimiento.subprod_name : movimiento.prod_name}</TableCell>
+                        <TableCell className="font-medium">{movimiento.subprod_name ? `${movimiento.prod_name} - ${movimiento.subprod_name}` : movimiento.subprod_name}</TableCell>
                         <TableCell className="font-medium w-1/8">{movimiento.mov_cantidad}</TableCell>
                         <TableCell className="font-medium">{movimiento.mov_comentario}</TableCell>
 

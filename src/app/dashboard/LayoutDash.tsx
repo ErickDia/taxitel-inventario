@@ -1,6 +1,7 @@
 
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/AppSidebar'
+import { Toaster } from '@/components/ui/toaster'
 
 function LayoutDash({ children }: { children: React.ReactNode }) {
 
@@ -17,6 +18,7 @@ function LayoutDash({ children }: { children: React.ReactNode }) {
               </div>
             </div>
           </div>
+        <Toaster />
         </main>
       </SidebarProvider>
     </>

@@ -7,7 +7,7 @@ import { Pencil, Plus, ShoppingCart } from 'lucide-react';
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
+    // DialogDescription,
     DialogFooter,
     DialogHeader,
     DialogTitle,
@@ -16,6 +16,7 @@ import {
   import { Input } from "@/components/ui/input"
   import { Label } from "@/components/ui/label"
 import { requestApi } from '@/hooks/useRequestApi';
+import { useToast } from '@/hooks/use-toast';
 
 
 type Cli_inventario = {
@@ -94,16 +95,20 @@ export const Clientes = () => {
     const [inputCli_name, setInputCli_name] = useState("")
 
     const buttonNuevoCliente = useRef<HTMLButtonElement>(null);
+    const [blockButtonCliente, setblockButtonCliente] = useState(false)
+
 
     // FIN Dialog CLIENTES
 
     // Dialog CLIENTES INVENTARIOS
     const buttonOpenInventario = useRef<HTMLButtonElement>(null);
 
+
     const [dataInventario, setDataInventario] = useState<Cli_inventario[]>([])
 
     // FIN Dialog CLIENTES INVENTARIOS
 
+    const { toast } = useToast()
 
     const sendFormProducto = () => {
 
@@ -114,23 +119,35 @@ export const Clientes = () => {
           cli_name: inputCli_name,
         });
         if (inputCli_unidad && inputCli_name) {
-          if (titleModalCliente.id == 1) {
-            requestApi({ url: `/api/v1/taxitel_inv/clientes`, type: "POST" , data: {cli_unidad: inputCli_unidad, cli_name: inputCli_name}})
-            .then((data) => {
-              console.log(data);
-              setResearchData(!researchData);
-              buttonNuevoCliente.current?.click()
-        
-            });
-          } else if (titleModalCliente.id == 2) {
-            requestApi({ url: `/api/v1/taxitel_inv/clientes/${inputCli_id}`, type: "PUT" , data: {cli_unidad: inputCli_unidad, cli_name: inputCli_name}})
-            .then((data) => {
-              console.log(data);
-              setResearchData(!researchData);
-              buttonNuevoCliente.current?.click()
-        
-            });
-          }
+            setblockButtonCliente(true)
+            if (titleModalCliente.id == 1) {
+                requestApi({ url: `/api/v1/taxitel_inv/clientes`, type: "POST" , data: {cli_unidad: inputCli_unidad, cli_name: inputCli_name}})
+                .then((data) => {
+                console.log(data);
+                toast({
+                    description: data.message,
+                })
+                setResearchData(!researchData);
+                buttonNuevoCliente.current?.click()
+            
+                });
+            } else if (titleModalCliente.id == 2) {
+                requestApi({ url: `/api/v1/taxitel_inv/clientes/${inputCli_id}`, type: "PUT" , data: {cli_unidad: inputCli_unidad, cli_name: inputCli_name}})
+                .then((data) => {
+                console.log(data);
+                toast({
+                    description: data.message,
+                })
+                setResearchData(!researchData);
+                buttonNuevoCliente.current?.click()
+            
+                });
+            }
+        } else {
+            toast({
+              variant: "destructive",
+              description: "Complete todos los campos obligatorios.",
+            })
         }
         
     
@@ -161,31 +178,32 @@ export const Clientes = () => {
                                 setInputCli_unidad("")
                                 setInputCli_name("")
                                 setInputCli_id(0)
+                                setblockButtonCliente(false)
                                 buttonNuevoCliente.current?.click()
                             }}><Plus />Nueva cliente</Button>
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
                         <DialogTitle>{titleModalCliente.label}</DialogTitle>
-                        <DialogDescription>
+                        {/* <DialogDescription>
                             Make changes to your profile here. Click save when you're done.
-                        </DialogDescription>
+                        </DialogDescription> */}
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
                         <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="cli_unidad" className="text-right">
-                            Unidad
+                            Unidad*
                         </Label>
                         <Input id="cli_unidad" value={inputCli_unidad} onChange={(e) => setInputCli_unidad(e.target.value)} className="col-span-3" />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="cli_name" className="text-right">
-                            Nombre
+                            Nombre*
                         </Label>
                         <Input id="cli_name" value={inputCli_name} onChange={(e) => setInputCli_name(e.target.value)} className="col-span-3" />
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button type="submit" onClick={() => {sendFormProducto()}}>Guardar cambios</Button>
+                        <Button type="submit" onClick={() => {sendFormProducto()}} disabled = {blockButtonCliente}>Guardar cambios</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
@@ -200,9 +218,9 @@ export const Clientes = () => {
                 <DialogContent className="sm:max-w-[600px]">
                     <DialogHeader>
                         <DialogTitle>Inventario de {inputCli_unidad} - {inputCli_name}</DialogTitle>
-                        <DialogDescription>
+                        {/* <DialogDescription>
                             Make changes to your profile here. Click save when you're done.
-                        </DialogDescription>
+                        </DialogDescription> */}
                     </DialogHeader>
                     <Table>
                         <TableHeader>
@@ -216,7 +234,7 @@ export const Clientes = () => {
                             {dataInventario.map((inv) => (
                             <Fragment key={inv.mov_id}>
                                 <TableRow>
-                                    <TableCell>{inv.subprod_name ? inv.subprod_name : inv.prod_name}</TableCell>
+                                    <TableCell>{inv.subprod_name ? `${inv.prod_name} - ${inv.subprod_name}` : inv.prod_name}</TableCell>
                                     <TableCell>{inv.mov_cantidad}</TableCell>
                                     
                                 </TableRow>
@@ -252,7 +270,9 @@ export const Clientes = () => {
                                 setInputCli_unidad(cliente.cli_unidad)
                                 setInputCli_name(cliente.cli_name)
                                 setInputCli_id(cliente.cli_id)
+                                setblockButtonCliente(false)
                                 buttonNuevoCliente.current?.click()
+                                
                             }}>
                                 {/* <AlignJustify /> */}
                                 <Pencil  className="h-4 w-4"/>
