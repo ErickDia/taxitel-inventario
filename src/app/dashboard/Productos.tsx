@@ -36,6 +36,8 @@ import {
 } from "@/components/ui/popover"
 import Categoria from '@/interfaces/categoria'
 import { requestApi } from '@/hooks/useRequestApi'
+import { useToast } from '@/hooks/use-toast'
+import { Toaster } from '@/components/ui/toaster'
 
 
 
@@ -157,6 +159,7 @@ export const Productos = () => {
   //fin config combobox
 
   const buttonNuevoProducto = useRef<HTMLButtonElement>(null);
+  const [blockButtonProducto, setblockButtonProducto] = useState(false)
 
   // fin modal config=============================
 
@@ -174,13 +177,18 @@ export const Productos = () => {
   //fin config combobox
 
   const buttonMovimiento = useRef<HTMLButtonElement>(null);
+  const [blockButtonMovimiento, setblockButtonMovimiento] = useState(false)
   //fin modal config movimiento=======================
+
+
+
+  const { toast } = useToast()
 
 
 
   const sendFormProducto = () => {
 
-
+    setblockButtonProducto(true)
 
     console.log({
       cate_id: cate_id,
@@ -193,6 +201,9 @@ export const Productos = () => {
         requestApi({ url: `/api/v1/taxitel_inv/productos`, type: "POST" , data: {prod_name: inputProd_name, prod_stock: inputProd_stock, cate_id: cate_id}})
         .then((data) => {
           console.log(data);
+          toast({
+            description: data.message,
+          })
           setResearchData(!researchData);
           buttonNuevoProducto.current?.click()
     
@@ -228,21 +239,73 @@ export const Productos = () => {
   }
 
   const sendFormMovimiento = () => {
+
+    setblockButtonMovimiento(true)
+
     if (inputTipoMov == "Entrada") {
       if (typeModalMov == 1) {
-        console.log({
+        requestApi({ url: `/api/v1/taxitel_inv/movimientos/entrada/`, type: 'POST', data: {
           prod_id: inputProd_id,
           mov_cantidad: inputMovCantidad,
           new_prod_stock: parseInt(inputMovCantidad) + parseInt(inputProd_stock),
-          mov_comentario: inputMovComentario
+          mov_comentario: inputMovComentario,
+          subprod_id: 0,
+          cli_id: 0
+        }})
+        .then(() => {
+          setResearchData(!researchData);
+          buttonMovimiento.current?.click()
         });
       } else {
-        console.log({
-          subprod_id: inputSubprod_id,
+        requestApi({ url: `/api/v1/taxitel_inv/movimientos/entrada/`, type: 'POST', data: {
           prod_id: inputProd_id,
           mov_cantidad: inputMovCantidad,
           new_prod_stock: parseInt(inputMovCantidad) + parseInt(inputProd_stock),
-          mov_comentario: inputMovComentario
+          mov_comentario: inputMovComentario,
+          subprod_id: inputSubprod_id,
+          cli_id: 0
+
+        }})
+        .then(() => {
+          // setCategorias(data);
+          setResearchData(!researchData);
+          buttonMovimiento.current?.click()
+
+
+        });
+      }
+    } else {
+      if (typeModalMov == 1) {
+        console.log(cli_id);
+        
+        requestApi({ url: `/api/v1/taxitel_inv/movimientos/salida/`, type: 'POST', data: {
+          prod_id: inputProd_id,
+          mov_cantidad: inputMovCantidad,
+          new_prod_stock: parseInt(inputProd_stock) - parseInt(inputMovCantidad),
+          mov_comentario: inputMovComentario,
+          subprod_id: 0,
+          cli_id: cli_id
+        }})
+        .then(() => {
+          setResearchData(!researchData);
+          buttonMovimiento.current?.click()
+        });
+      } else {
+        requestApi({ url: `/api/v1/taxitel_inv/movimientos/salida/`, type: 'POST', data: {
+          prod_id: inputProd_id,
+          mov_cantidad: inputMovCantidad,
+          new_prod_stock: parseInt(inputProd_stock) - parseInt(inputMovCantidad),
+          mov_comentario: inputMovComentario,
+          subprod_id: inputSubprod_id,
+          cli_id: cli_id
+
+        }})
+        .then(() => {
+          // setCategorias(data);
+          setResearchData(!researchData);
+          buttonMovimiento.current?.click()
+
+
         });
       }
     }
@@ -283,6 +346,8 @@ export const Productos = () => {
                           setCate_id(0)
                           setInputProd_name("")
                           setInputProd_stock("")
+
+                          setblockButtonProducto(false)
                           buttonNuevoProducto.current?.click()
                         }}><Plus />Nuevo producto</Button>
           <DialogContent className="sm:max-w-[425px]">
@@ -364,7 +429,7 @@ export const Productos = () => {
               </div>
             </div>
             <DialogFooter>
-              <Button type="submit" onClick={() => {sendFormProducto()}}>Guardar cambios</Button>
+              <Button type="submit" onClick={() => {sendFormProducto()}} disabled={blockButtonProducto}>Guardar cambios</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -432,8 +497,10 @@ export const Productos = () => {
                             <CommandItem
                               key={cliente.cli_id}
                               value={`${cliente.cli_label}`}
-                              onSelect={(currentValue) => {
-                                setCli_id(parseInt(currentValue) === cli_id ? 0 : parseInt(currentValue))
+                              onSelect={() => {
+                                // console.log(currentValue);
+                                
+                                setCli_id(cliente.cli_id == cli_id ? 0 : cliente.cli_id)
                                 setOpenComboClientes(false)
                               }}
                             >
@@ -470,7 +537,7 @@ export const Productos = () => {
               </div>
             </div>
             <DialogFooter>
-              <Button type="submit" onClick={() => {sendFormMovimiento()}}>Guardar cambios</Button>
+              <Button type="submit" onClick={() => {sendFormMovimiento()}} disabled={blockButtonMovimiento}>Guardar cambios</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -506,6 +573,7 @@ export const Productos = () => {
                         setInputProd_name(product.prod_name)
                         setInputProd_stock(`${product.prod_stock}`)
 
+                        setblockButtonProducto(false)
                         buttonNuevoProducto.current?.click()
                       }}>
                       {/* <AlignJustify /> */}
@@ -520,6 +588,8 @@ export const Productos = () => {
                         setInputProd_name("")
                         setInputProd_stock("")
 
+                        setblockButtonProducto(false)
+
                         buttonNuevoProducto.current?.click()
                       }}>
                       <Plus />
@@ -532,6 +602,8 @@ export const Productos = () => {
                           setInputMovComentario("")
                           setInputProd_id(product.prod_id)
                           setInputProd_stock(`${product.prod_stock}`)
+
+                          setblockButtonMovimiento(false)
                           buttonMovimiento.current?.click()
                         }}>
                           <Package />
@@ -595,6 +667,7 @@ export const Productos = () => {
           </TableBody>
         </Table>
       </div>
+      <Toaster />
     </LayoutDash>
   )
 }

@@ -19,14 +19,15 @@ import { requestApi } from '@/hooks/useRequestApi';
 
 
 type Cli_inventario = {
-    cliinv_id: number
+    mov_id: number
     prod_id: number
     prod_name: string
-    prod_foto: string
+    cli_id: number
     subprod_id?: number
-    subprod_name?: string
-    prod_cantidad: number
-    cliinv_comentario?: string 
+    subprod_name: string
+    mov_tipo: number
+    mov_comentario?: string
+    mov_cantidad: number 
 }
 
 type Cliente = {
@@ -208,14 +209,16 @@ export const Clientes = () => {
                             <TableRow>
                             <TableHead>Nombre</TableHead>
                             <TableHead>Cantidad</TableHead>
+                            {/* <TableHead>Comentario</TableHead> */}
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {dataInventario.map((inv) => (
-                            <Fragment key={inv.cliinv_id}>
+                            <Fragment key={inv.mov_id}>
                                 <TableRow>
                                     <TableCell>{inv.subprod_name ? inv.subprod_name : inv.prod_name}</TableCell>
-                                    <TableCell>{inv.prod_cantidad}</TableCell>
+                                    <TableCell>{inv.mov_cantidad}</TableCell>
+                                    
                                 </TableRow>
                             </Fragment>
                             ))}
