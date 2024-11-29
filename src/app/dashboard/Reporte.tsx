@@ -124,7 +124,7 @@ export const Reporte = () => {
                     <TableRow>
                         <TableCell className="font-medium w-1/8"><Badge className={movimiento.mov_tipo == 1 ? 'bg-green-700' : 'bg-red-700'}>{movimiento.mov_tipo == 1 ? "Entrada" : "Salida"}</Badge></TableCell>
                         <TableCell className="font-medium">{movimiento.mov_tipo == 1 ? "-" : `${movimiento.cli_name} - ${movimiento.cli_unidad}`}</TableCell>
-                        <TableCell className="font-medium">{movimiento.subprod_name ? `${movimiento.prod_name} - ${movimiento.subprod_name}` : movimiento.subprod_name}</TableCell>
+                        <TableCell className="font-medium">{movimiento.subprod_name ? `${movimiento.prod_name} - ${movimiento.subprod_name}` : movimiento.prod_name}</TableCell>
                         <TableCell className="font-medium w-1/8">{movimiento.mov_cantidad}</TableCell>
                         <TableCell className="font-medium">{movimiento.mov_comentario}</TableCell>
 
